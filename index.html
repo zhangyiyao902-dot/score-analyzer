@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#4f46e5">
+  <title>高中生成绩分析工具</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="app">
+    <header class="hero">
+      <p class="eyebrow">STUDENT SCORE ANALYZER</p>
+      <h1>高中生成绩分析</h1>
+      <p class="subtitle">输入各科成绩，自动计算总分与平均分</p>
+    </header>
+
+    <section class="summary-grid" aria-label="成绩概览">
+      <div class="summary-card"><span>总分</span><strong id="totalScore">0</strong></div>
+      <div class="summary-card"><span>平均分</span><strong id="averageScore">0.0</strong></div>
+      <div class="summary-card"><span>科目数</span><strong id="subjectCount">0</strong></div>
+    </section>
+
+    <section class="panel">
+      <div class="section-title">
+        <div><h2>各科成绩</h2><p>可以添加你自己的科目</p></div>
+        <button id="addSubjectBtn" class="primary-btn" type="button">＋ 添加科目</button>
+      </div>
+      <div id="subjectList" class="subject-list"></div>
+      <div id="emptyState" class="empty-state">
+        <div class="empty-icon">📝</div><h3>还没有成绩</h3><p>先填写语文、数学、英语，或者添加其他科目</p>
+      </div>
+    </section>
+
+    <section class="panel tips">
+      <h2>使用说明</h2>
+      <ul>
+        <li>成绩会自动保存到当前浏览器，无需登录或数据库。</li>
+        <li>刷新页面后，刚才填写的成绩仍会保留。</li>
+        <li>点击删除按钮可以移除某一科。</li>
+        <li>总分和平均分会随着成绩变化自动更新。</li>
+      </ul>
+    </section>
+
+    <button id="clearBtn" class="clear-btn" type="button">清空全部成绩</button>
+    <footer>数据只保存在你的设备浏览器中</footer>
+  </main>
+  <script src="script.js"></script>
+</body>
+</html>
