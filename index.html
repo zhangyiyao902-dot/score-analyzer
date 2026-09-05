@@ -2,24 +2,32 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#2563eb"><title>班主任班级成绩分析系统</title>
+<title>班主任班级成绩分析系统 4.4</title>
 <link rel="stylesheet" href="style.css">
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 </head>
 <body>
 <div class="wrap">
-<header><h1>班主任班级成绩分析系统</h1><p>单班成绩导入、排名、学生分析与科目统计</p></header>
-<section class="panel"><h2>① 导入全班成绩</h2><label class="upload">选择 Excel / CSV 文件<input id="fileInput" type="file" accept=".xlsx,.xls,.csv"></label><p id="status" class="muted">请上传成绩表。第一行为表头，需包含“姓名”列。</p></section>
-<section id="overview" class="hidden">
-<div class="cards"><div><span>班级人数</span><b id="nStudents">-</b></div><div><span>总分平均</span><b id="avgTotal">-</b></div><div><span>最高总分</span><b id="maxTotal">-</b></div><div><span>最低总分</span><b id="minTotal">-</b></div></div>
-<section class="panel"><h2>② 全班成绩排名</h2><div class="controls"><label>排名依据 <select id="rankBy"></select></label></div><div class="table-wrap"><table id="classTable"></table></div></section>
-<section class="panel"><h2>③ 查询学生</h2><div class="search"><input id="nameInput" placeholder="输入学生姓名"><button id="searchBtn">查询</button></div><div id="studentResult"></div></section>
-<section class="panel"><h2>④ 各科统计</h2><div class="table-wrap"><table id="subjectStats"></table></div></section>
-<section class="panel"><h2>⑤ 成绩分段</h2><div id="bands"></div></section>
-<section class="panel"><h2>⑥ 重点关注</h2><div id="focus"></div></section>
+<header><h1>班主任班级成绩分析</h1><p>单班成绩导入、排名与学生分析</p></header>
+<section class="panel">
+<h2>导入全班成绩</h2>
+<label class="upload">选择 Excel / CSV 文件<input id="fileInput" type="file" accept=".xlsx,.xls,.csv"></label>
+<p id="status" class="muted">请先设置科目，再导入成绩。</p>
 </section>
-<section class="panel"><h2>⚙️ 科目与满分</h2><p class="muted">系统会优先识别常见科目。也支持导入表头中的其他科目，并按满分计算得分率。</p><div id="subjects"></div><button id="saveSubjects">保存科目设置</button><button id="resetSubjects" class="secondary">恢复默认</button></section>
-<footer>成绩数据仅在当前浏览器中处理，不会由本页面上传到数据库。</footer>
+<section class="panel">
+<h2>科目设置</h2><div id="subjects"></div>
+<button id="addSubject" class="primary">＋ 添加科目</button>
+<p class="muted">科目名称和满分完全自定义，添加数量不限。Excel 表头需与科目名称对应。</p>
+</section>
+<section id="overview" class="panel hidden"></section>
+<section id="studentSection" class="panel hidden">
+<h2>学生查询</h2><input id="studentName" class="text" placeholder="输入学生姓名"><button id="searchBtn" class="primary">查询</button>
+<div id="studentResult"></div>
+</section>
+<section id="rankSection" class="panel hidden"><h2>全班成绩排名</h2><select id="sortBy"></select><div class="tableWrap"><table id="rankTable"></table></div></section>
+<section id="subjectSection" class="panel hidden"><h2>科目统计</h2><div class="tableWrap"><table id="subjectTable"></table></div></section>
+<section id="focusSection" class="panel hidden"><h2>重点关注学生</h2><div id="focusList"></div></section>
+<footer>成绩在浏览器本地处理；不会上传到本系统服务器。</footer>
 </div>
-<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script src="script.js"></script>
 </body></html>
