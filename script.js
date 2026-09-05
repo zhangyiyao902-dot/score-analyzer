@@ -10,7 +10,8 @@ function renderSubjects(){
  document.querySelectorAll('.sfull').forEach(x=>x.oninput=()=>{subjects[x.dataset.i].full=Math.max(1,Number(x.value)||1);save();refresh();});
  document.querySelectorAll('[data-del]').forEach(x=>x.onclick=()=>{if(subjects.length<=1){alert('至少保留一个科目');return} subjects.splice(Number(x.dataset.del),1);save();renderSubjects();refresh();});
 }
-$('addSubject').onclick=()=>{subjects.push({name:'新科目',full:100});save();renderSubjects();refresh();setTimeout(()=>{const a=document.querySelectorAll('.sname');a[a.length-1]?.select()},0)};
+function addSubject(){ subjects.push({name:'新科目'+(subjects.length+1),full:100}); save(); renderSubjects(); refresh(); setTimeout(()=>{const a=document.querySelectorAll('.sname'); const last=a[a.length-1]; if(last){last.focus();last.select()}},50); }
+const addBtn=$('addSubject'); if(addBtn){ addBtn.addEventListener('click',addSubject); }
 function rank(arr,key){const vals=arr.map(x=>Number(x[key])).filter(Number.isFinite).sort((a,b)=>b-a);const unique=[...new Set(vals)];return v=>{if(!Number.isFinite(Number(v)))return '-';return unique.indexOf(Number(v))+1}}
 function refresh(){if(!students.length)return;renderOverview();renderRank();renderSubjectStats();renderFocus();}
 function renderOverview(){const totals=students.map(s=>s.total);$('overview').classList.remove('hidden');$('overview').innerHTML=`<h2>班级总览</h2><div class="cards"><div class="card">人数<b>${students.length}</b></div><div class="card">平均总分<b>${avg(totals).toFixed(1)}</b></div><div class="card">最高总分<b>${Math.max(...totals)}</b></div><div class="card">最低总分<b>${Math.min(...totals)}</b></div></div>`}
