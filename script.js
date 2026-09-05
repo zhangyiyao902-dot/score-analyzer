@@ -1,55 +1,21 @@
-const STORAGE_KEY = "highSchoolScores_v1";
-const defaultSubjects = [
-  { name: "语文", score: "" },
-  { name: "数学", score: "" },
-  { name: "英语", score: "" }
-];
-let subjects = loadSubjects();
-const subjectList = document.getElementById("subjectList");
-const emptyState = document.getElementById("emptyState");
-const totalScore = document.getElementById("totalScore");
-const averageScore = document.getElementById("averageScore");
-const subjectCount = document.getElementById("subjectCount");
-const addSubjectBtn = document.getElementById("addSubjectBtn");
-const clearBtn = document.getElementById("clearBtn");
-
-function cloneDefaults() { return defaultSubjects.map(item => ({ ...item })); }
-function loadSubjects() {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (!saved) return cloneDefaults();
-    const parsed = JSON.parse(saved);
-    if (!Array.isArray(parsed)) return cloneDefaults();
-    return parsed.filter(item => item && typeof item.name === "string")
-      .map(item => ({ name:item.name, score:item.score === "" ? "" : Number(item.score) }));
-  } catch { return cloneDefaults(); }
-}
-function saveSubjects() { localStorage.setItem(STORAGE_KEY, JSON.stringify(subjects)); }
-function getValidScores() { return subjects.map(item => Number(item.score)).filter(score => Number.isFinite(score) && score >= 0); }
-function updateSummary() {
-  const scores = getValidScores();
-  const total = scores.reduce((sum, score) => sum + score, 0);
-  totalScore.textContent = Number.isInteger(total) ? total : total.toFixed(1);
-  averageScore.textContent = scores.length ? (total / scores.length).toFixed(1) : "0.0";
-  subjectCount.textContent = scores.length;
-}
-function render() {
-  subjectList.innerHTML = "";
-  subjects.forEach((subject,index) => {
-    const row = document.createElement("div"); row.className = "subject-row";
-    const nameInput = document.createElement("input");
-    nameInput.className="subject-name"; nameInput.type="text"; nameInput.value=subject.name; nameInput.placeholder="科目名称"; nameInput.maxLength=20;
-    nameInput.addEventListener("input", e => { subjects[index].name=e.target.value; saveSubjects(); });
-    const scoreInput = document.createElement("input");
-    scoreInput.className="score-input"; scoreInput.type="number"; scoreInput.inputMode="decimal"; scoreInput.min="0"; scoreInput.max="1000"; scoreInput.step="0.1"; scoreInput.placeholder="成绩"; scoreInput.value=subject.score;
-    scoreInput.addEventListener("input", e => { subjects[index].score=e.target.value==="" ? "" : Number(e.target.value); saveSubjects(); updateSummary(); });
-    const deleteBtn=document.createElement("button"); deleteBtn.className="delete-btn"; deleteBtn.type="button"; deleteBtn.textContent="×"; deleteBtn.title="删除此科目";
-    deleteBtn.addEventListener("click",()=>{ subjects.splice(index,1); saveSubjects(); render(); });
-    row.append(nameInput,scoreInput,deleteBtn); subjectList.appendChild(row);
-  });
-  emptyState.style.display=subjects.length ? "none" : "block";
-  updateSummary();
-}
-addSubjectBtn.addEventListener("click",()=>{ subjects.push({name:"",score:""}); saveSubjects(); render(); document.querySelectorAll(".subject-name").at(-1)?.focus(); });
-clearBtn.addEventListener("click",()=>{ if (!subjects.length) return; if (window.confirm("确定要清空全部成绩吗？")) { subjects=[]; saveSubjects(); render(); } });
+const STORAGE_KEY='scoreAnalyzerV2';
+const defaults=[{name:'语文',max:150,score:''},{name:'数学',max:150,score:''},{name:'英语',max:150,score:''}];
+let subjects=loadSubjects(); let classRows=[];
+const $=id=>document.getElementById(id);
+function cloneDefaults(){return defaults.map(x=>({...x}));}
+function loadSubjects(){try{const x=JSON.parse(localStorage.getItem(STORAGE_KEY));if(!Array.isArray(x))return cloneDefaults();return x.filter(s=>s&&typeof s.name==='string').map(s=>({name:s.name,max:Number(s.max)>0?Number(s.max):100,score:s.score===''?'':Number(s.score)}));}catch{return cloneDefaults();}}
+function saveSubjects(){localStorage.setItem(STORAGE_KEY,JSON.stringify(subjects));}
+function validScore(v){return v!==''&&Number.isFinite(Number(v))&&Number(v)>=0;}
+function getScored(){return subjects.filter(s=>validScore(s.score));}
+function updateSummary(){const rows=getScored();const total=rows.reduce((a,s)=>a+Number(s.score),0);$('totalScore').textContent=Number.isInteger(total)?String(total):total.toFixed(1);$('averageScore').textContent=rows.length?(total/rows.length).toFixed(1):'0.0';}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));}
+function render(){const box=$('subjectList');box.innerHTML='';subjects.forEach((s,i)=>{const row=document.createElement('div');row.className='subject-row';const name=document.createElement('input');name.type='text';name.value=s.name;name.placeholder='科目';name.maxLength=20;const max=document.createElement('input');max.type='number';max.min='1';max.step='0.1';max.value=s.max;max.className='score';const score=document.createElement('input');score.type='number';score.min='0';score.step='0.1';score.value=s.score;score.placeholder='成绩';score.className='score';const del=document.createElement('button');del.type='button';del.className='delete-btn';del.textContent='×';name.addEventListener('input',e=>{s.name=e.target.value;saveSubjects();analyzeWeak();});max.addEventListener('input',e=>{s.max=e.target.value;saveSubjects();analyzeWeak();});score.addEventListener('input',e=>{s.score=e.target.value;saveSubjects();updateSummary();analyzeWeak();});del.addEventListener('click',()=>{subjects.splice(i,1);saveSubjects();render();});row.append(name,max,score,del);box.appendChild(row);});$('emptySubjects').style.display=subjects.length?'none':'block';updateSummary();analyzeWeak();}
+function analyzeWeak(){updateSummary();const scored=subjects.filter(s=>validScore(s.score)&&Number(s.max)>0);const box=$('weakAnalysis');box.innerHTML='';if(!scored.length){box.textContent='填写成绩后自动分析';return;}const list=scored.map(s=>({name:s.name.trim()||'未命名科目',rate:Number(s.score)/Number(s.max)})).sort((a,b)=>a.rate-b.rate);const weakCount=Math.max(1,Math.ceil(list.length/3));list.forEach((x,i)=>{const d=document.createElement('div');d.className='analysis-item'+(i<weakCount?' weak':'');d.innerHTML=`<span>${escapeHtml(x.name)}${i===0?' · 最薄弱':''}</span><span class="rate">${(x.rate*100).toFixed(1)}%</span>`;box.appendChild(d);});}
+$('addSubjectBtn').addEventListener('click',()=>{subjects.push({name:'',max:100,score:''});saveSubjects();render();const inputs=document.querySelectorAll('.subject-row input');inputs[inputs.length-4]?.focus();});
+$('excelInput').addEventListener('change',async e=>{const file=e.target.files[0];if(!file)return;$('importStatus').textContent='正在读取 Excel…';try{if(typeof XLSX==='undefined')throw new Error('Excel 解析组件加载失败，请检查网络后重试');const buf=await file.arrayBuffer();const wb=XLSX.read(buf,{type:'array'});const ws=wb.Sheets[wb.SheetNames[0]];const raw=XLSX.utils.sheet_to_json(ws,{defval:''});if(!raw.length)throw new Error('第一张表没有有效数据');classRows=calculateRows(raw);if(!classRows.length)throw new Error('没有找到有效的成绩数据');$('importStatus').textContent=`已读取 ${classRows.length} 名同学，正在生成排名。`;renderRank();}catch(err){$('importStatus').textContent='导入失败：'+err.message;$('rankPanel').innerHTML='';$('myRank').textContent='—';}e.target.value='';});
+function calculateRows(raw){const headers=Object.keys(raw[0]);const configured=subjects.map(s=>s.name.trim()).filter(Boolean);const scoreHeaders=headers.filter(h=>configured.includes(String(h).trim()));if(!scoreHeaders.length)throw new Error('Excel 中没有找到与当前科目名称一致的成绩列，请检查科目名称。');return raw.map((r,i)=>{let total=0,count=0;for(const h of scoreHeaders){const n=Number(r[h]);if(Number.isFinite(n)){total+=n;count++;}}const name=r['姓名']??r['名字']??r[headers[0]]??`第${i+2}行`;return{name:String(name),total,count};}).filter(x=>x.count>0).sort((a,b)=>b.total-a.total);}
+function renderRank(){const panel=$('rankPanel');panel.innerHTML='';if(!classRows.length)return;const options=classRows.map(x=>x.name);const me=window.prompt(`请输入你的姓名\n示例：${options.slice(0,20).join('、')}`);let myIndex=-1;if(me!==null&&me.trim()){myIndex=classRows.findIndex(x=>x.name.trim()===me.trim());$('myRank').textContent=myIndex>=0?formatRank(myIndex):'—';if(myIndex>=0){const pct=classRows.length>1?((classRows.length-myIndex-1)/(classRows.length-1)*100):100;const card=document.createElement('div');card.className='my-rank-card';card.textContent=`你的排名：第 ${formatRank(myIndex)} / ${classRows.length} 名　总分：${formatNum(classRows[myIndex].total)}　超过约 ${pct.toFixed(1)}% 的同学`;panel.appendChild(card);}}const table=document.createElement('table');table.className='rank-table';table.innerHTML='<thead><tr><th>排名</th><th>姓名</th><th>总分</th><th>计入科目数</th></tr></thead>';const tbody=document.createElement('tbody');classRows.forEach((x,i)=>{const tr=document.createElement('tr');if(i===myIndex)tr.className='me';tr.innerHTML=`<td>${formatRank(i)}</td><td>${escapeHtml(x.name)}</td><td>${formatNum(x.total)}</td><td>${x.count}</td>`;tbody.appendChild(tr);});table.appendChild(tbody);panel.appendChild(table);}
+function formatNum(n){return Number.isInteger(n)?String(n):n.toFixed(1);}
+function formatRank(i){if(i===0)return'🥇 1';if(i===1)return'🥈 2';if(i===2)return'🥉 3';return String(i+1);}
+$('clearBtn').addEventListener('click',()=>{if(confirm('确定清空本机保存的科目和成绩吗？')){subjects=[];classRows=[];localStorage.removeItem(STORAGE_KEY);render();$('rankPanel').innerHTML='';$('importStatus').textContent='';$('myRank').textContent='—';}});
 render();
